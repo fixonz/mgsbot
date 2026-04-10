@@ -399,6 +399,20 @@ async def add_user(telegram_id: int, username: str):
         )
         await db.commit()
 
+async def log_activity(telegram_id: int, username: str, activity_text: str):
+    from datetime import datetime
+    now_str = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    async with aiosqlite.connect(DB_PATH) as db:
+        await db.execute(
+            "INSERT INTO user_activity_logs (telegram_id, activity, created_at) VALUES (?, ?, ?)",
+            (telegram_id, activity_text, now_str)
+        )
+        await db.execute(
+            "UPDATE users SET last_activity = ?, last_activity_at = ?, username = COALESCE(?, username) WHERE telegram_id = ?",
+            (activity_text, now_str, username, telegram_id)
+        )
+        await db.commit()
+
 async def is_silent_mode():
     async with aiosqlite.connect(DB_PATH) as db:
         async with db.execute("SELECT value FROM bot_settings WHERE key = 'silent_mode'") as cursor:

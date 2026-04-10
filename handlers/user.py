@@ -26,40 +26,6 @@ active_verifications = set()  # sale_id
 verification_attempts = {}  # user_id -> {'count': int, 'block_until': float}
 admin_intention_messages = {} # sale_id -> [(admin_id, message_id, original_text)]
 
-async def update_profile_photo(uid: int, bot):
-    try:
-        photos = await bot.get_user_profile_photos(uid)
-        if photos.total_count > 0:
-            photo_file = await bot.get_file(photos.photos[0][-1].file_id)
-            os.makedirs("assets/profiles", exist_ok=True)
-            save_path = f"assets/profiles/{uid}.jpg"
-            # Refresh if more than 1 day old
-            if not os.path.exists(save_path) or (time.time() - os.path.getmtime(save_path) > 86400):
-                await bot.download_file(photo_file.file_path, save_path)
-            
-            async with aiosqlite.connect(DB_PATH) as db:
-                await db.execute("UPDATE users SET profile_photo = ? WHERE telegram_id = ?", (save_path, uid))
-                await db.commit()
-    except Exception as e:
-        logging.log(5, f"Profile fetch skip: {e}")
-
-async def update_activity(uid: int, text: str, db_conn=None):
-    from datetime import datetime
-    now_str = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-    
-    async def _do_update(db):
-        # Update current status in users table
-        await db.execute("UPDATE users SET last_activity = ?, last_activity_at = ? WHERE telegram_id = ?", (text, now_str, uid))
-        # Insert into historical log
-        await db.execute("INSERT INTO user_activity_logs (telegram_id, activity, created_at) VALUES (?, ?, ?)", (uid, text, now_str))
-
-    if db_conn:
-        await _do_update(db_conn)
-    else:
-        async with aiosqlite.connect(DB_PATH) as db:
-            await _do_update(db)
-            await db.commit()
-
 async def safe_edit(event: CallbackQuery | Message, text: str, reply_markup: InlineKeyboardMarkup = None, photo_path: str = None):
     """
     Safely edit a message, handling both text-to-media and media-to-text transitions.
@@ -269,38 +235,8 @@ async def cmd_start(message: Message):
 
     user_id = message.from_user.id
     username = message.from_user.username
-    
-    # Check if new user
-    is_new = False
-    async with aiosqlite.connect(DB_PATH) as db:
-        async with db.execute("SELECT id FROM users WHERE telegram_id = ?", (user_id,)) as cursor:
-            if not await cursor.fetchone(): is_new = True
-            
     await add_user(user_id, username)
-    asyncio.create_task(update_profile_photo(user_id, message.bot)) # Async background fetch
-    
-    if is_new:
-        await update_activity(user_id, "✨ NEW_USER_DETECTED: First time start!")
-    else:
-        await update_activity(user_id, "👋 Session Started (Returning)")
-    
-    # --- ADMIN OFFLINE SUMMARY ---
-    if user_id in ADMIN_IDS:
-        async with aiosqlite.connect(DB_PATH) as db:
-            async with db.execute("SELECT COUNT(*) FROM preorders WHERE status = 'pending'") as c: 
-                p_count = (await c.fetchone())[0]
-            async with db.execute("SELECT COUNT(*) FROM preorders WHERE status = 'confirmed'") as c: 
-                c_count = (await c.fetchone())[0]
-        
-        if p_count > 0 or c_count > 0:
-            sum_text = (
-                f"👋 <b>Salut, Admin!</b>\n\n"
-                f"Cât ai fost offline, s-au strâns:\n"
-                f"🕒 <code>{p_count}</code> precomenzi noi\n"
-                f"✅ <code>{c_count}</code> precomenzi deja confirmate\n\n"
-                f"Folosește <code>/online</code> pentru a le vedea și gestiona rapid."
-            )
-            await message.answer(sum_text)
+
 
     welcome_text = (
         "🗿 <b>MOGOSU'S ELITE VAULT</b>\n\n"
@@ -398,7 +334,6 @@ async def cb_menu_profile(callback: CallbackQuery):
             else:
                 kb_buttons.append([InlineKeyboardButton(text=f"⭐ Recenzie - {s_iname}", callback_data=f"write_rev_{s_id}")])
 
-    await update_activity(callback.from_user.id, "Viewing Profile / Recent Activity")
     kb_buttons.append([InlineKeyboardButton(text="🔙 Înapoi", callback_data="menu_start")])
     kb = InlineKeyboardMarkup(inline_keyboard=kb_buttons)
     
@@ -464,7 +399,6 @@ async def cb_view_order_secret(callback: CallbackQuery):
 
 @router.callback_query(F.data == "menu_support")
 async def cb_menu_support(callback: CallbackQuery):
-    await update_activity(callback.from_user.id, "Viewing Support Info")
     if await check_cooldown(callback): return
     if await check_and_show_pending(callback): return
     text = (
@@ -481,7 +415,6 @@ async def cb_menu_support(callback: CallbackQuery):
 
 @router.callback_query(F.data == "menu_shop")
 async def cb_menu_shop(callback: CallbackQuery):
-    await update_activity(callback.from_user.id, "Browsing Categories")
     if await check_cooldown(callback): return
     if await check_and_show_pending(callback): return
 
@@ -528,7 +461,6 @@ async def cb_menu_shop(callback: CallbackQuery):
 async def cb_menu_start(callback: CallbackQuery):
     if await check_cooldown(callback): return
     if await check_and_show_pending(callback): return
-    await update_activity(callback.from_user.id, "Back to Main Menu")
     welcome_text = "🗿 <b>MOGOSU'S VAULT</b>\n\n🛒 Alege o poartă către succes sau folosește butoanele de mogger de mai jos."
     kb = main_menu()
     if callback.from_user.id in ADMIN_IDS:
@@ -583,7 +515,6 @@ async def show_category_logic(callback: CallbackQuery, cat_id: int):
             return
             
         cat_name, cat_img, cat_desc = cat_info
-        await update_activity(callback.from_user.id, f"Explored Category: {cat_name}")
 
         # Get average rating for this category
         async with db.execute("""
@@ -685,7 +616,6 @@ async def cb_shop_item(callback: CallbackQuery):
         return
 
     name, desc, p_ron, p_ltc, raw_stock, item_img, cat_img, confirming_count, cat_id = item
-    await update_activity(callback.from_user.id, f"Viewing Item: {name}")
     stock = max(0, raw_stock - confirming_count)
     display_img = item_img if item_img else cat_img
     
@@ -811,7 +741,6 @@ async def cb_buy_item(callback: CallbackQuery):
         return
         
     name, p_ron = item
-    await update_activity(callback.from_user.id, f"Initiated Purchase: {name}")
     
     ltc_rate = await get_ltc_ron_price()
     price = ron_to_ltc(p_ron, ltc_rate)
@@ -865,7 +794,6 @@ async def cb_buy_item(callback: CallbackQuery):
         [InlineKeyboardButton(text="❌ Anulează Comanda", callback_data=f"cancel_order_{sale_id}")]
     ])
     
-    await update_activity(callback.from_user.id, f"Checkout Started: {name} (Order #{sale_id})")
     qr_file = generate_ltc_qr(address, price)
     
     await safe_edit(callback, text, reply_markup=kb, photo_path=qr_file)
@@ -875,7 +803,6 @@ async def cb_buy_item(callback: CallbackQuery):
 async def cb_verify_payment(callback: CallbackQuery):
     if await check_cooldown(callback): return
     sale_id = int(callback.data.split("_")[2])
-    await update_activity(callback.from_user.id, f"Verifying Payment for Order #{sale_id}")
     user_id = callback.from_user.id
     now = time.time()
 
@@ -1119,7 +1046,6 @@ async def cb_verify_payment(callback: CallbackQuery):
             kb_sup = InlineKeyboardMarkup(inline_keyboard=[[
                 InlineKeyboardButton(text="🆘 Ajutor / Suport (Disponibil 2h)", callback_data=f"user_support_{sale_id}")
             ]])
-            await update_activity(user_tg_id, f"🎉 Order #{sale_id} PAID & DELIVERED: {item_name}")
             await update_status(f"✅ PLATA CONFIRMATĂ!\nProdusul a fost trimis mai jos.", kb=kb_sup)
             
             if user_id in verification_attempts:
@@ -1224,7 +1150,6 @@ async def cb_cancel_order(callback: CallbackQuery):
         if row and row[1] == 'pending':
             await db.execute("UPDATE sales SET status = 'cancelled' WHERE id = ?", (sale_id,))
             await db.execute("UPDATE addresses SET in_use_by_sale_id = NULL, locked_until = NULL WHERE crypto_address = ?", (row[0],))
-            await update_activity(callback.from_user.id, f"❌ Order #{sale_id} Cancelled by User", db_conn=db)
             await db.commit()
             
             # Edit intention messages for admins
