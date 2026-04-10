@@ -6,11 +6,8 @@ from datetime import datetime, timedelta
 from aiogram.fsm.context import FSMContext
 from utils.keyboards import main_menu
 from database import (
-    DB_PATH, get_categories, get_category_by_id, get_items_by_category, 
-    get_item_by_id, create_sale, get_sale_by_id, update_sale_payment, 
-    is_address_available, lock_address, get_user_completed_sales, 
-    add_user_review, get_all_reviews, get_user_by_telegram_id, 
-    add_stock_alert, get_setting, add_user, is_silent_mode, get_item_stats, get_user_total_sales
+    DB_PATH, add_user, get_and_create_sale, is_silent_mode, 
+    get_item_stats, get_user_total_sales, get_setting
 )
 from config import DEPOSIT_TIMEOUT_MINUTES, ADMIN_IDS
 from handlers.states import ReviewState, SupportTicketState
