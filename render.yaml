@@ -1,0 +1,21 @@
+services:
+  - type: worker
+    name: mogosu-bot
+    runtime: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: python bot.py
+    envVars:
+      - key: BOT_TOKEN
+        sync: false
+      - key: ADMIN_IDS
+        sync: false
+      - key: TATUM_API_KEY
+        sync: false
+      - key: LTC_ADDRESSES
+        sync: false
+      - key: DB_PATH
+        value: /data/bot_database.sqlite
+    disk:
+      name: bot-data
+      mountPath: /data
+      sizeGB: 1

@@ -20,15 +20,15 @@ async def seed_data():
         # Define 9 categories with precise emojis
         # Order: ☘️, ❄️, 🍫, 🍬, 🍾, 🏃, 🐎, 💎, 🔮
         categories_data = [
-            {"id": 1, "emoji": "❄️", "desc": "Super-flakey. Pentru zilele când vrei să fii fresh ca zăpada de munte.", "img": "assets/cocos.jpg"},
-            {"id": 2, "emoji": "🐎", "desc": "Putere de cal. Pentru zilele în care vrei să treci de usi...", "img": "assets/kaluti.jpg"},
-            {"id": 3, "emoji": "☘️", "desc": "Verdura maximă, top gazon.. ca sa ai Creier fresh toată ziua!", "img": "assets/gazon.jpg"},
-            {"id": 4, "emoji": "🍾", "desc": "Vibrație de câștigător. Porți medeul, porți după tine.", "img": "assets/medalion.jpg"},
-            {"id": 5, "emoji": "🍬", "desc": "Dreamer Diamonds. Mica, impact uriaș.", "img": "assets/bb.jpg"},
-            {"id": 6, "emoji": "🏃", "desc": "Turbo ON. Când ceilalți se trezesc, tu... dai in ele, continui.. si continui...", "img": "assets/viteza.jpg"},
-            {"id": 7, "emoji": "🍫", "desc": "Chocolate: Gust intens, plăcere garantată.", "img": "assets/shop.png"},
-            {"id": 8, "emoji": "🔮", "desc": "Fara control, sudiaza-te...", "img": "assets/carton.jpg"},
-            {"id": 9, "emoji": "💎", "desc": "Vezi în 4K. Decizii bune, prieteni mai putini, da altfel.", "img": "assets/cristi.jpg"}
+            {"id": 1, "emoji": "❄️", "desc": "Zăpada de la Polul Nord. MOG-GRADE CRYSTAL for intense status.", "img": "assets/cocos.jpg"},
+            {"id": 2, "emoji": "🐎", "desc": "Putere de cal sălbatic. ELITE MOGGER ENERGY. Trece prin ziduri ca un boss.", "img": "assets/kaluti.jpg"},
+            {"id": 3, "emoji": "☘️", "desc": "Gazon de elită ELITA LUX. VIBE MAXIM, MOG-LEVEL: GOD. @sagagaubackup for elite support.", "img": "assets/gazon.jpg"},
+            {"id": 4, "emoji": "🍾", "desc": "Medeul de AUR PUR. Porți asta și toată lumea e mogged. MAX MOGGING VIBE.", "img": "assets/medalion.jpg"},
+            {"id": 5, "emoji": "🍬", "desc": "Diamantele visătorilor MOG-DIAMONDS. Mica, dar te mută din loc direct în top.", "img": "assets/bb.jpg"},
+            {"id": 6, "emoji": "🏃", "desc": "Turbo pe bune ELITE PERFORMANCE. Dai în ele și îi moggezi pe toți la viteză.", "img": "assets/viteza.jpg"},
+            {"id": 7, "emoji": "🍫", "desc": "Ciocolată de aia fină, să-ți ungă sufletul de mogger.", "img": "assets/shop.png"},
+            {"id": 8, "emoji": "🔮", "desc": "Fără control total. MOG-TRANSFORMATION. Vezi succesul pur în oglindă.", "img": "assets/carton.jpg"},
+            {"id": 9, "emoji": "💎", "desc": "Vedere 4K MOG-VISION. Vezi viitorul, vezi succesul, vezi cum îi moggezi pe restul.", "img": "assets/cristi.jpg"}
         ]
 
         for cat in categories_data:
@@ -60,7 +60,7 @@ async def seed_data():
                 price_ltc = round(price_ron / RON_TO_LTC_RATE, 4)
                 
                 cursor = await db.execute(
-                    "INSERT INTO items (category_id, name, description, price_ron, price_ltc) VALUES (?, ?, ?, ?, ?)",
+                    "INSERT INTO items (category_id, name, description, price_ron, price_ltc, is_primary) VALUES (?, ?, ?, ?, ?, 1)",
                     (cat_id, item_name, f"Calitate premium garantată pentru {item_name}.", float(price_ron), price_ltc)
                 )
                 item_id = cursor.lastrowid

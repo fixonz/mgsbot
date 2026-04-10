@@ -1,0 +1,21 @@
+2026-04-01T07:32:48Z INF Thank you for trying Cloudflare Tunnel. Doing so, without a Cloudflare account, is a quick way to experiment and try it out. However, be aware that these account-less Tunnels have no uptime guarantee, are subject to the Cloudflare Online Services Terms of Use (https://www.cloudflare.com/website-terms/), and Cloudflare reserves the right to investigate your use of Tunnels for violations of such terms. If you intend to use Tunnels in production you should use a pre-created named tunnel by following: https://developers.cloudflare.com/cloudflare-one/connections/connect-apps
+2026-04-01T07:32:48Z INF Requesting new quick Tunnel on trycloudflare.com...
+2026-04-01T07:32:53Z INF +--------------------------------------------------------------------------------------------+
+2026-04-01T07:32:53Z INF |  Your quick Tunnel has been created! Visit it at (it may take some time to be reachable):  |
+2026-04-01T07:32:53Z INF |  https://bio-boston-flavor-tender.trycloudflare.com                                        |
+2026-04-01T07:32:53Z INF +--------------------------------------------------------------------------------------------+
+2026-04-01T07:32:53Z INF Version 2026.3.0 (Checksum 59b12880b24af581cf5b1013db601c7d843b9b097e9c78aa5957c7f39f741885)
+2026-04-01T07:32:53Z INF GOOS: windows, GOVersion: go1.24.13, GoArch: amd64
+2026-04-01T07:32:53Z INF Settings: map[cred-file:C:\Users\fixxZ\.cloudflared\44fe9aac-be2e-4f07-914d-daaa33bf6e52.json credentials-file:C:\Users\fixxZ\.cloudflared\44fe9aac-be2e-4f07-914d-daaa33bf6e52.json ha-connections:1 protocol:quic url:http://localhost:8000]
+2026-04-01T07:32:53Z INF cloudflared will not automatically update on Windows systems.
+2026-04-01T07:32:53Z INF Generated Connector ID: 3a01dc9c-1638-44bf-833b-a2216f9387a1
+2026-04-01T07:32:53Z WRN Unable to lookup protocol percentage.
+2026-04-01T07:32:53Z INF Initial protocol quic
+2026-04-01T07:32:53Z INF ICMP proxy will use 10.5.0.2 as source for IPv4
+2026-04-01T07:32:53Z INF ICMP proxy will use fe80::723e:7ca:789d:a5aa in zone NordLynx as source for IPv6
+2026-04-01T07:32:53Z INF cloudflared does not support loading the system root certificate pool on Windows. Please use --origin-ca-pool <PATH> to specify the path to the certificate pool
+2026-04-01T07:32:53Z INF ICMP proxy will use 10.5.0.2 as source for IPv4
+2026-04-01T07:32:53Z INF Tunnel connection curve preferences: [X25519MLKEM768 CurveP256] connIndex=0 event=0 ip=198.41.200.53
+2026-04-01T07:32:53Z INF ICMP proxy will use fe80::723e:7ca:789d:a5aa in zone NordLynx as source for IPv6
+2026-04-01T07:32:53Z INF Starting metrics server on 127.0.0.1:20241/metrics
+2026-04-01T07:32:54Z INF Registered tunnel connection connIndex=0 connection=a3163830-719c-4a8e-9a0c-4afa27a0d686 event=0 ip=198.41.200.53 location=sof01 protocol=quic

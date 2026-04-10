@@ -6,3 +6,7 @@ __pycache__/
 .vscode/
 .idea/
 tmp/
+cloudflared.exe
+*.exe
+*.zip
+*.log
