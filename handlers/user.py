@@ -5,7 +5,13 @@ from aiogram.types import Message, CallbackQuery, InlineKeyboardMarkup, InlineKe
 from datetime import datetime, timedelta
 from aiogram.fsm.context import FSMContext
 from utils.keyboards import main_menu
-from database import add_user, DB_PATH, get_and_create_sale, is_silent_mode, get_item_stats, get_user_total_sales
+from database import (
+    DB_PATH, get_categories, get_category_by_id, get_items_by_category, 
+    get_item_by_id, create_sale, get_sale_by_id, update_sale_payment, 
+    is_address_available, lock_address, get_user_completed_sales, 
+    add_user_review, get_all_reviews, get_user_by_telegram_id, 
+    add_stock_alert, get_setting, add_user, is_silent_mode, get_item_stats, get_user_total_sales
+)
 from config import DEPOSIT_TIMEOUT_MINUTES, ADMIN_IDS
 from handlers.states import ReviewState, SupportTicketState
 import os
@@ -1420,10 +1426,20 @@ async def process_support_msg(message: Message, state: FSMContext):
 @router.message(Command("admin"))
 async def admin_portal(message: Message):
     if message.from_user.id in ADMIN_IDS:
+        dash_url = await get_setting("dashboard_url", "https://render.com")
         await message.answer(
-            "⚡ **CONSOLĂ ADMIN MOGOSU** ⚡\n\nAccesează panoul de control direct din Telegram:",
+            f"⚡ <b>CONSOLĂ ADMIN MOGOSU</b> ⚡\n\nAccesează panoul de control direct din Telegram:\n\n🔗 <code>{dash_url}</code>",
             reply_markup=InlineKeyboardMarkup(inline_keyboard=[
-                [InlineKeyboardButton(text="🚀 DESCHIDE PANOU", web_app=WebAppInfo(url=f"https://micheal-slatiest-gilly.ngrok-free.dev/"))]
+                [InlineKeyboardButton(text="🚀 DESCHIDE PANOU", web_app=WebAppInfo(url=dash_url))]
             ])
         )
+
+@router.message(Command("link"))
+async def cmd_link(message: Message):
+    if message.from_user.id in ADMIN_IDS:
+        dash_url = await get_setting("dashboard_url")
+        if dash_url:
+            await message.answer(f"🔗 <b>Dashboard URL:</b>\n<code>{dash_url}</code>")
+        else:
+            await message.answer("❌ Nu a fost setat niciun URL. Adaugă <code>KEEP_ALIVE_URL</code> în variabilele de mediu.")
 

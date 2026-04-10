@@ -8,7 +8,7 @@ from aiogram import Bot, Dispatcher
 from aiogram.enums import ParseMode
 from aiogram.client.default import DefaultBotProperties
 
-from database import init_db, ensure_5_slots, log_activity, DB_PATH
+from database import init_db, ensure_5_slots, log_activity, DB_PATH, set_setting
 from config import settings
 from web_dashboard import app as web_app
 from handlers.user import router as user_router
@@ -119,6 +119,10 @@ async def start_bot():
     _bot_ref = bot
     await init_db()
     await ensure_5_slots()
+
+    # Save Dashboard URL for bot commands
+    if settings.KEEP_ALIVE_URL:
+        await set_setting("dashboard_url", settings.KEEP_ALIVE_URL)
     
     # Inject bot into dashboard state for web interaction
     web_app.state.bot = bot

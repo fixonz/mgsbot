@@ -20,20 +20,6 @@ DASHBOARD_PIN = os.getenv("DASHBOARD_PIN", "7777")
 def is_authenticated(request: Request):
     return request.cookies.get("admin_session") == DASHBOARD_PIN
 
-@app.post("/login")
-async def login(pin: str = Form(...)):
-    if pin == DASHBOARD_PIN:
-        response = RedirectResponse(url="/", status_code=303)
-        response.set_cookie(key="admin_session", value=DASHBOARD_PIN, httponly=True, max_age=86400)
-        return response
-    return {"status": "error", "message": "Invalid PIN"}
-
-@app.get("/")
-async def index(request: Request):
-    if not is_authenticated(request):
-        return HTMLResponse(LOGIN_HTML)
-    return HTMLResponse(TEMPLATES_HTML)
-
 LOGIN_HTML = """
 <!DOCTYPE html>
 <html lang="en">

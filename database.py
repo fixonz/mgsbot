@@ -413,6 +413,17 @@ async def log_activity(telegram_id: int, username: str, activity_text: str):
         )
         await db.commit()
 
+async def get_setting(key: str, default=None):
+    async with aiosqlite.connect(DB_PATH) as db:
+        async with db.execute("SELECT value FROM bot_settings WHERE key = ?", (key,)) as cursor:
+            row = await cursor.fetchone()
+            return row[0] if row else default
+
+async def set_setting(key: str, value: str):
+    async with aiosqlite.connect(DB_PATH) as db:
+        await db.execute("INSERT OR REPLACE INTO bot_settings (key, value) VALUES (?, ?)", (key, value))
+        await db.commit()
+
 async def is_silent_mode():
     async with aiosqlite.connect(DB_PATH) as db:
         async with db.execute("SELECT value FROM bot_settings WHERE key = 'silent_mode'") as cursor:
