@@ -18,7 +18,7 @@ app.state.bot = None
 DASHBOARD_PIN = settings.DASHBOARD_PIN
 
 def is_authenticated(request: Request):
-    return request.cookies.get("admin_session") == DASHBOARD_PIN
+    return True # Password removed as requested
 
 LOGIN_HTML = """
 <!DOCTYPE html>
@@ -916,7 +916,7 @@ async def process_login(response: Response, pin: str = Form(...)):
 
 @app.get("/", response_class=HTMLResponse)
 async def home(request: Request):
-    if not is_authenticated(request): return RedirectResponse(url="/login", status_code=303)
+    # Authentication removed as per request
     async with aiosqlite.connect(settings.DB_PATH) as db:
         db.row_factory = aiosqlite.Row
         user_count = (await (await db.execute("SELECT COUNT(*) FROM users")).fetchone())[0]
