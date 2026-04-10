@@ -14,8 +14,8 @@ app = FastAPI(title="Mogosu v9 Ultimate")
 app.mount("/assets", StaticFiles(directory="assets"), name="assets")
 app.state.bot = None
 
-# Secure PIN from env or default
-DASHBOARD_PIN = os.getenv("DASHBOARD_PIN", "7777")
+# Secure PIN from settings
+DASHBOARD_PIN = settings.DASHBOARD_PIN
 
 def is_authenticated(request: Request):
     return request.cookies.get("admin_session") == DASHBOARD_PIN

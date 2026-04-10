@@ -33,6 +33,7 @@ class Settings(BaseSettings):
     PORT: int = Field(default=8000, validation_alias="PORT")
     DEBUG: bool = Field(default=False, validation_alias="DEBUG")
     KEEP_ALIVE_URL: str = Field(default="", validation_alias="KEEP_ALIVE_URL")
+    DASHBOARD_PIN: str = Field(default="7777", validation_alias="DASHBOARD_PIN")
 
     @property
     def ADMIN_IDS(self) -> List[int]:
