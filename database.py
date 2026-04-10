@@ -213,6 +213,16 @@ async def init_db():
             await db.execute("ALTER TABLE items ADD COLUMN is_hidden BOOLEAN DEFAULT 0")
         except: pass
 
+        # Activities Log table (Missing in previous version)
+        await db.execute('''
+            CREATE TABLE IF NOT EXISTS user_activity_logs (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                telegram_id INTEGER,
+                activity TEXT,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        ''')
+
         await db.commit()
         await ensure_5_slots()
 
