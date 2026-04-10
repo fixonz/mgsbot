@@ -195,21 +195,24 @@ async def check_cooldown(callback: CallbackQuery) -> bool:
     user_id = callback.from_user.id
     btn_data = callback.data
     now = time.time()
-    
     key = (user_id, btn_data)
-    # Per-button cooldown to prevent double taps/spam (1s)
-    if key in button_cooldowns:
-        if now - button_cooldowns[key] < 1.0: 
-            await callback.answer("⏳ Ai răbdare...", show_alert=False)
-            return True
-            
+    
     # Global cooldown (0.3s) - helps with DB concurrency but allows fast navigation
     global_key = (user_id, "global_cooldown")
-    # Exempt navigation buttons from global cooldown for better UX
+    # Exempt navigation buttons from the strict 1s cooldown for better UX
     is_nav = btn_data.startswith(("nav_", "menu_", "shop_cat_"))
-    if not is_nav and global_key in button_cooldowns:
-        if now - button_cooldowns[global_key] < 0.3:
-            return True 
+    
+    if is_nav:
+        # For navigation, only use the global 0.3s cooldown
+        if global_key in button_cooldowns:
+            if now - button_cooldowns[global_key] < 0.3:
+                return True
+    else:
+        # Per-button cooldown for action buttons (buy, verify, etc.) (1s)
+        if key in button_cooldowns:
+            if now - button_cooldowns[key] < 1.0: 
+                await callback.answer("⏳ Ai răbdare...", show_alert=False)
+                return True
             
     button_cooldowns[key] = now
     button_cooldowns[global_key] = now

@@ -29,28 +29,35 @@ _BLACKLIST_PREFIXES = (
 
 class ActivityMiddleware(BaseMiddleware):
     async def __call__(self, handler, event, data):
+        # 1. Execute handler immediately to ensure fast response
         result = await handler(event, data)
+        
+        # 2. Fire and forget the activity logging in the background
+        asyncio.create_task(self._process_activity_bg(event))
+        
+        return result
+
+    async def _process_activity_bg(self, event):
         try:
             user = None
             activity_text = None
             if isinstance(event, Message):
                 user = event.from_user
-                if user.id in settings.ADMIN_IDS: return result
+                if user.id in settings.ADMIN_IDS: return
                 text = event.text or ''
-                if any(text.startswith(p) for p in _BLACKLIST_PREFIXES): return result
+                if any(text.startswith(p) for p in _BLACKLIST_PREFIXES): return
                 activity_text = f"Mesaj: {text[:60]}" if text else "[Media]"
             elif isinstance(event, CallbackQuery):
                 user = event.from_user
-                if user.id in settings.ADMIN_IDS: return result
+                if user.id in settings.ADMIN_IDS: return
                 cb = event.data or ''
-                if any(cb.startswith(p) for p in _BLACKLIST_PREFIXES): return result
+                if any(cb.startswith(p) for p in _BLACKLIST_PREFIXES): return
                 activity_text = await _resolve_callback_label(cb)
             
             if user and activity_text:
-                asyncio.create_task(_log_and_cache_user(user, activity_text))
+                await _log_and_cache_user(user, activity_text)
         except Exception as e:
-            logging.debug(f"ActivityMiddleware error: {e}")
-        return result
+            logging.debug(f"ActivityMiddleware BG error: {e}")
 
 async def _resolve_callback_label(cb: str) -> str:
     if not cb: return "Buton: [Fără date]"
